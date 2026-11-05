@@ -1,4 +1,3 @@
-# tests/test_challan.py
 # Run with: pytest tests/test_challan.py -v
 
 from datetime import date, timedelta
