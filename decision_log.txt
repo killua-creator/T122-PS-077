@@ -1,0 +1,35 @@
+DECISION LOG — T122 PS-077 RTO Engine
+Format: [count] | Decision | Reason
+======================================================================
+
+[01] | Chose Python over Java | More comfortable with Python; simpler for command-file parsing and string handling
+
+[02] | Stored all data in dictionaries keyed by ID | No database needed per brief; dicts are fast, readable and easy to explain in viva
+
+[03] | Split code into models/ and engine/ folders | Models hold data, engines apply rules — single responsibility makes it easy to find and fix any rule
+
+[04] | Used plain if/elif/else for all tax slabs | More readable than lookup tables; panel can follow the logic line by line in viva
+
+[05] | Put all magic numbers as named constants at top of each file | Changing any rule in viva = changing one number at the top, not hunting through logic
+
+[06] | Tax slab boundaries are inclusive on the lower slab (price <= 50000 gets 10%) | Brief says "up to Rs 50,000" which means <=; confirmed by EC-01 and EC-02
+
+[07] | EV registered ON the sunset date pays 5% tax | Brief says "0% for registrations BEFORE the date" — on the date itself is not before, so 5% applies (EC-04)
+
+[08] | Used Python date.fromisoformat() for all date comparisons | Comparing date strings directly ("2024-01-01" > "2023-12-31") works for YYYY-MM-DD but using date objects is safer and avoids edge cases
+
+[09] | Stored licence points as a list of dicts with date and points | Needed for the rolling 24-month window — a simple counter would not let us filter by date
+
+[10] | Challan frozen_days tracked on the Challan object itself | Simpler than a separate freeze table; effective_days = total_days - frozen_days in one line
+
+[11] | Drunk driving immediately sets status to COURT_REFERRED and blocks vehicle | Brief says "court referral" for drunk driving — no payment path should exist; enforced in both issue and pay functions
+
+[12] | Transfer delay fee counts even part of a month as a full month | Brief says "Rs 300 per month of delay" — used ceiling division to count part months
+
+[13] | Tax refund rounded DOWN using int() not round() | Brief says "rounded down to the rupee" — int() truncates which is correct; round() would round up at .5
+
+[14] | Quarterly tax rounded UP to nearest Rs 10 using math.ceil | Brief says "rounded up to Rs 10" — math.ceil(amount / 10) * 10 handles this cleanly
+
+[15] | Report engine collects output as a string and also prints it | Makes reports testable (assert "KA01AB0001" in report) while still showing on screen during demo
+
+[16] | Command file uses comma-separated format | Simple to parse with split(","); easy to create sample data in a text editor; matches CSV tools
