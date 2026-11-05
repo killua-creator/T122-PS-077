@@ -1,6 +1,8 @@
 # This file handles ALL tax and cess calculations.
 # each finction does ONE job. Plain if/elif/else - no tricks.
 
+import math
+
 # ── Constants ──────────────────────────────────────────────────────────────────
 # Put all the numbers here at the top so changing a rule = changing one number.
 
@@ -31,6 +33,15 @@ LUXURY_CESS_RATE        = 0.01    # 1%
 GREEN_TAX_CAR           = 5000    # Rs 5,000 per 5-year renewal for old cars
 GREEN_TAX_2W            = 1000    # Rs 1,000 per 5-year renewal for old 2W
 OLD_VEHICLE_AGE_YEARS   = 15      # vehicle is "old" after 15 years
+
+# Transport tax rates (BR-05)
+LMV_TRANSPORT_TAX_PER_SEAT_YEAR  = 1500   # Rs 1,500 per seat per year
+HGV_TAX_PER_TONNE_YEAR           = 1000   # Rs 1,000 per tonne per year
+BUS_TAX_PER_SEAT_YEAR            = 2500   # Rs 2,500 per seat per year
+
+QUARTERLY_LATE_RATE              = 0.02   # 2% per month or part month
+QUARTERLY_LATE_CAP               = 0.20   # capped at 20%
+UNPAID_QUARTERS_BLOCK_THRESHOLD  = 2      # 2 unpaid quarters blocks renewal
 
 
 # ── BR-01: Road tax for two-wheelers ──────────────────────────────────────────
@@ -178,3 +189,73 @@ def calculate_total_tax_private(vehicle, ev_sunset_date=None, application_date=N
         "green_tax":      green_tax,
         "total":          round(total, 2)
     }
+
+def calculate_quarterly_tax(vehicle_class, seating, laden_weight_tonnes):
+    """
+    Calculates the quarterly road tax for a transport vehicle.
+    Amount is rounded UP to the nearest Rs 10.
+
+    vehicle_class:        "LMV_TRANSPORT", "HGV", or "BUS"
+    seating:              number of seats (used for LMV_TRANSPORT and BUS)
+    laden_weight_tonnes:  laden weight in tonnes (used for HGV)
+
+    Returns: quarterly tax amount in rupees
+    """
+    if vehicle_class == "LMV_TRANSPORT":
+        annual = seating * LMV_TRANSPORT_TAX_PER_SEAT_YEAR
+    elif vehicle_class == "HGV":
+        annual = laden_weight_tonnes * HGV_TAX_PER_TONNE_YEAR
+    elif vehicle_class == "BUS":
+        annual = seating * BUS_TAX_PER_SEAT_YEAR
+    else:
+        return 0.0   # private vehicles do not pay quarterly tax
+
+    quarterly = annual / 4
+
+    # Round UP to the nearest Rs 10
+    quarterly_rounded = math.ceil(quarterly / 10) * 10
+    return quarterly_rounded
+
+
+def calculate_quarterly_late_fee(quarterly_tax, months_late):
+    """
+    Late payment penalty: 2% per month or part month, capped at 20%.
+
+    quarterly_tax: the base quarterly tax amount
+    months_late:   integer — how many months (or part months) late
+
+    Returns: late fee amount in rupees
+    """
+    if months_late <= 0:
+        return 0.0
+
+    rate     = min(months_late * QUARTERLY_LATE_RATE, QUARTERLY_LATE_CAP)
+    late_fee = round(quarterly_tax * rate, 2)
+    return late_fee
+
+
+def get_unpaid_quarters_count(payment_records, current_date):
+    """
+    Counts how many quarters have gone unpaid up to the current date.
+
+    payment_records: a list of dictionaries, one per quarter:
+        [
+            {"quarter_start": "2024-01-01", "paid": True,  "paid_date": "2023-12-28"},
+            {"quarter_start": "2024-04-01", "paid": False, "paid_date": None},
+            ...
+        ]
+    current_date: string "YYYY-MM-DD"
+
+    Returns: integer count of unpaid quarters that were due before current_date
+    """
+    from datetime import date
+    today = date.fromisoformat(current_date)
+
+    unpaid_count = 0
+    for record in payment_records:
+        quarter_start = date.fromisoformat(record["quarter_start"])
+        # Only count quarters that have already started
+        if quarter_start <= today and not record["paid"]:
+            unpaid_count += 1
+
+    return unpaid_count
