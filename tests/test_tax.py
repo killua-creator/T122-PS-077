@@ -84,3 +84,60 @@ def test_luxury_cess_exactly_20_lakh():
 def test_luxury_cess_ev_exempt():
     # EVs never pay cess even if above 20 lakh
     assert calculate_luxury_cess(3000000, "EV", "ELECTRIC") == 0.0
+
+from engine.tax_calculator import (
+    calculate_quarterly_tax,
+    calculate_quarterly_late_fee,
+    get_unpaid_quarters_count
+)
+
+def test_lmv_transport_quarterly_tax():
+    # 4 seats × Rs 1,500/year = Rs 6,000/year → Rs 1,500/quarter
+    # Rs 1,500 is already a multiple of 10 — no rounding needed
+    assert calculate_quarterly_tax("LMV_TRANSPORT", seating=4,
+                                    laden_weight_tonnes=0) == 1500
+
+def test_hgv_quarterly_tax_rounded_up():
+    # 3 tonnes × Rs 1,000/year = Rs 3,000/year → Rs 750/quarter
+    # Rs 750 is already a multiple of 10
+    assert calculate_quarterly_tax("HGV", seating=0,
+                                    laden_weight_tonnes=3) == 750
+
+def test_bus_quarterly_tax():
+    # 40 seats × Rs 2,500/year = Rs 1,00,000/year → Rs 25,000/quarter
+    assert calculate_quarterly_tax("BUS", seating=40,
+                                    laden_weight_tonnes=0) == 25000
+
+def test_quarterly_tax_rounds_up_to_nearest_10():
+    # 3 seats × Rs 1,500/year = Rs 4,500/year → Rs 1,125/quarter
+    # Rounded UP to nearest Rs 10 = Rs 1,130
+    assert calculate_quarterly_tax("LMV_TRANSPORT", seating=3,
+                                    laden_weight_tonnes=0) == 1130
+
+def test_quarterly_late_fee_1_month():
+    # 2% of Rs 1,500 for 1 month = Rs 30
+    assert calculate_quarterly_late_fee(1500, months_late=1) == 30.0
+
+def test_quarterly_late_fee_capped_at_20_percent():
+    # 11 months late → 22% → capped at 20%
+    # 20% of Rs 1,500 = Rs 300
+    assert calculate_quarterly_late_fee(1500, months_late=11) == 300.0
+
+def test_unpaid_quarters_count():
+    records = [
+        {"quarter_start": "2024-01-01", "paid": True,  "paid_date": "2023-12-28"},
+        {"quarter_start": "2024-04-01", "paid": False, "paid_date": None},
+        {"quarter_start": "2024-07-01", "paid": False, "paid_date": None},
+    ]
+    count = get_unpaid_quarters_count(records, current_date="2024-08-01")
+    assert count == 2   # two unpaid quarters that have already started
+
+def test_future_quarter_not_counted_as_unpaid():
+    records = [
+        {"quarter_start": "2024-01-01", "paid": True,  "paid_date": "2023-12-28"},
+        {"quarter_start": "2024-04-01", "paid": False, "paid_date": None},
+        {"quarter_start": "2024-07-01", "paid": False, "paid_date": None},
+    ]
+    # Current date is before July quarter — only April quarter is overdue
+    count = get_unpaid_quarters_count(records, current_date="2024-05-01")
+    assert count == 1

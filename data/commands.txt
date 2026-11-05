@@ -1,0 +1,40 @@
+# RTO Engine Command File
+# Format: COMMAND,param1,param2,...
+# Lines starting with # are comments and are ignored
+
+# ── Register owners ───────────────────────────────────────────
+REGISTER_OWNER,OWN001,Ravi Kumar,KA0120230012345
+REGISTER_OWNER,OWN002,Priya Sharma,KA0120230067890
+REGISTER_OWNER,OWN003,Suresh Nair,KA0120230011111
+
+# ── Set up registration series ────────────────────────────────
+CREATE_SERIES,KA01AB,1:786,2:1000,2:1111,3:9999
+
+# ── Register vehicles ─────────────────────────────────────────
+REGISTER_VEHICLE,VEH001,KA01AB,LMV_PRIVATE,PETROL,800000,1200,5,0,2022-01-15,2024-01-10,OWN001,KA
+REGISTER_VEHICLE,VEH002,KA01AB,2W,PETROL,45000,150,2,0,2023-03-01,2024-01-11,OWN002,KA
+REGISTER_VEHICLE,VEH003,KA01AB,LMV_PRIVATE,DIESEL,2500000,1500,5,0,2021-06-01,2024-01-12,OWN003,KA
+REGISTER_VEHICLE,VEH004,KA01AB,HGV,DIESEL,1500000,0,2,15,2020-05-01,2024-01-13,OWN001,KA
+REGISTER_VEHICLE,VEH005,KA01AB,EV,ELECTRIC,1200000,0,5,0,2023-09-01,2024-01-14,OWN002,KA,2025-01-01
+
+# ── Issue challans ────────────────────────────────────────────
+ISSUE_CHALLAN,CHL001,KA01AB0001,NO_HELMET,2024-02-01,MANUAL
+ISSUE_CHALLAN,CHL002,KA01AB0002,SPEEDING,2024-02-05,CAMERA,KA0120230067890
+ISSUE_CHALLAN,CHL003,KA01AB0003,NO_INSURANCE,2024-02-10,MANUAL
+
+# ── Pay a challan ─────────────────────────────────────────────
+PAY_CHALLAN,CHL001,2024-02-20
+
+# ── Issue fitness certificate ─────────────────────────────────
+ISSUE_FITNESS,KA01AB0004,2024-01-15,True
+
+# ── Issue permit ──────────────────────────────────────────────
+ISSUE_PERMIT,KA01AB0004,GOODS,2024-01-20
+
+# ── Ownership transfer ────────────────────────────────────────
+TRANSFER_VEHICLE,TRF001,KA01AB0002,OWN003,2024-01-11,2024-01-25
+
+# ── Print reports ─────────────────────────────────────────────
+PRINT_DOSSIER,KA01AB0001,2024-03-01
+PRINT_DAILY_REGISTER,2024-01-10
+PRINT_CHALLAN_AGEING,2024-03-01

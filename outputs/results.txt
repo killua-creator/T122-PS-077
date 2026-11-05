@@ -1,0 +1,100 @@
+RTO Engine starting — reading data/commands.txt
+============================================================
+[OK] Owner registered: OWN001 — Ravi Kumar
+[OK] Owner registered: OWN002 — Priya Sharma
+[OK] Owner registered: OWN003 — Suresh Nair
+[OK] Series created: KA01AB with 4 fancy numbers
+[OK] Vehicle registered: KA01AB0001 (LMV_PRIVATE, PETROL)
+     Road Tax : Rs 112,000.00
+     TOTAL     : Rs 112,000.00
+[OK] Vehicle registered: KA01AB0002 (2W, PETROL)
+     Road Tax : Rs 4,500.00
+     TOTAL     : Rs 4,500.00
+[OK] Vehicle registered: KA01AB0003 (LMV_PRIVATE, DIESEL)
+     Road Tax : Rs 450,000.00
+     Diesel    : Rs 50,000.00
+     Luxury    : Rs 25,000.00
+     TOTAL     : Rs 525,000.00
+[OK] Vehicle registered: KA01AB0004 (HGV)
+     Quarterly Tax : Rs 3,750 per quarter
+[OK] Vehicle registered: KA01AB0005 (EV, ELECTRIC)
+     Road Tax : Rs 0.00
+     TOTAL     : Rs 0.00
+[OK] Challan issued: CHL001 | KA01AB0001 | NO_HELMET | Rs 1,000 | 2024-02-01
+[OK] Challan issued: CHL002 | KA01AB0002 | SPEEDING | Rs 2,000 | 2024-02-05
+[OK] Challan issued: CHL003 | KA01AB0003 | NO_INSURANCE | Rs 2,000 | 2024-02-10
+[OK] Challan CHL001 marked as PAID | Amount paid: Rs 1,000
+[OK] Fitness certificate issued: KA01AB0004 | Valid until 2026-01-15
+[OK] Permit issued: KA01AB0004 | GOODS | Valid until 2029-01-20
+[OK] Transfer TRF001: KA01AB0002 → OWN003 | Fee: Rs 150
+============================================================
+VEHICLE DOSSIER
+============================================================
+Registration Mark : KA01AB0001
+Vehicle Class     : LMV_PRIVATE
+Fuel Type         : PETROL
+Ex-Showroom Price : Rs 800,000
+Manufacture Date  : 2022-01-15
+Registration Date : 2024-01-10
+State             : KA
+Status            : ACTIVE
+Hypothecation     : None
+
+OWNER
+  Name            : Ravi Kumar
+  Owner ID        : OWN001
+  Licence No.     : KA0120230012345
+  Licence Status  : ACTIVE
+
+TAX RECORD
+  Road Tax Paid   : Rs 112,000.0
+  Cess Paid       : Rs 0.0
+
+FITNESS CERTIFICATE
+  No fitness certificate on record
+
+PERMIT
+  No permit on record
+
+CHALLAN HISTORY
+  [CHL001] 2024-02-01 | NO_HELMET | Rs 1,000 | PAID
+
+LICENCE POINTS (last 24 months)
+  2024-02-01 | NO_HELMET | 2 pts
+  TOTAL IN WINDOW : 2 pts
+============================================================
+============================================================
+DAILY REGISTRATION REGISTER — 2024-01-10
+============================================================
+Mark            Class              Owner             Price Status
+------------------------------------------------------------
+KA01AB0001      LMV_PRIVATE        OWN001     Rs   800,000 ACTIVE
+
+Total registered: 1
+============================================================
+============================================================
+CHALLAN AGEING REPORT — 2024-03-01
+============================================================
+
+0–30 days   (CURRENT)  (2 challans)
+------------------------------------------------------------
+  CHL002     | KA01AB0002      | SPEEDING             | Rs  2,000 | Day 25
+  CHL003     | KA01AB0003      | NO_INSURANCE         | Rs  2,000 | Day 20
+
+31–60 days  (NEAR ESCALATION)  (0 challans)
+------------------------------------------------------------
+  None
+
+61–90 days  (ESCALATED)  (0 challans)
+------------------------------------------------------------
+  None
+
+90+ days    (OVERDUE)  (0 challans)
+------------------------------------------------------------
+  None
+
+Total unpaid challans : 2
+Total amount outstanding : Rs 4,000
+============================================================
+============================================================
+RTO Engine finished.
