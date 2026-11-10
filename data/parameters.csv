@@ -1,0 +1,12 @@
+key,value,notes
+as_of_date,2026-11-04,Date for PRINT_* commands that carry no date
+ev_sunset_date,2026-04-01,"EV road tax 0% for registrations before this date, 5% on/after"
+temporary_registration_days,30,Validity of temporary registration
+fitness_late_fee_per_day,50,"Rs per day after expiry, max 5000"
+fitness_late_fee_max,5000,
+transfer_delay_fee_per_month,300,Rs per month (or part) beyond 30 days after sale
+challan_escalation_days,60,ISSUED -> ESCALATED (+50%) when unpaid at 60 days
+challan_court_days,90,ESCALATED -> COURT_REFERRED at 90 days
+contest_freeze_days,30,
+points_window_months,24,
+points_suspension_threshold,12,

@@ -16,6 +16,7 @@ class RegistrationSeries:
         self.current_number = 0          # starts at 0, first issued will be 0001
         self.fancy_numbers = fancy_numbers if fancy_numbers else {}
         self.auctioned_numbers = {}      # {number: winning_bid} — fancy numbers sold via auction
+        self.issued_numbers = set()      # set of numbers that have already been issued
         self.is_exhausted = False        # True when 9999 is reached
 
     def format_mark(self, number):

@@ -34,3 +34,6 @@ Thumbs.db
 # OS generated
 .DS_Store
 Thumbs.db
+
+# Output generated
+outputs/

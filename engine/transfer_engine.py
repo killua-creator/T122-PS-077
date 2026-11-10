@@ -173,7 +173,7 @@ def calculate_depreciated_price(original_price, first_registration_date,
     migration  = date.fromisoformat(migration_date)
 
     # Count only COMPLETED years (not partial years)
-    completed_years = (migration - first_reg).days // 365
+    completed_years = migration.year - first_reg.year - (1 if (migration.month, migration.day) < (first_reg.month, first_reg.day) else 0)
 
     # Apply depreciation rate, capped at maximum
     total_depreciation = min(
@@ -203,7 +203,7 @@ def calculate_tax_refund(road_tax_paid, first_registration_date, noc_issue_date)
     first_reg = date.fromisoformat(first_registration_date)
     noc_date  = date.fromisoformat(noc_issue_date)
 
-    completed_years  = (noc_date - first_reg).days // 365
+    completed_years  = noc_date.year - first_reg.year - (1 if (noc_date.month, noc_date.day) < (first_reg.month, first_reg.day) else 0)
     remaining_years  = LIFETIME_TAX_YEARS - completed_years
 
     if remaining_years <= 0:

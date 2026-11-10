@@ -1,0 +1,4 @@
+series_id,series_prefix,sequence_order,start_number,status
+SER-01,KA01AA,1,9850,ACTIVE
+SER-02,KA01AB,2,1,NEXT
+SER-03,KA01AC,3,1,NEXT

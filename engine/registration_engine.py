@@ -35,16 +35,23 @@ def issue_next_mark(series):
         series.current_number += 1
         number = series.current_number
 
+        if hasattr(series, "issued_numbers") and number in series.issued_numbers:
+            continue
+
         if series.is_fancy(number):
             # This is a fancy number — has it been auctioned already?
             if number in series.auctioned_numbers:
                 # It was auctioned — it can be issued
+                if hasattr(series, "issued_numbers"):
+                    series.issued_numbers.add(number)
                 return series.format_mark(number)
             else:
                 # EC-07: Fancy number in sequence but no auction — SKIP it
                 continue
 
         # Normal number — issue it
+        if hasattr(series, "issued_numbers"):
+            series.issued_numbers.add(number)
         return series.format_mark(number)
 
     # Reached 9999

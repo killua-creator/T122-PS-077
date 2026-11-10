@@ -21,7 +21,19 @@ OFFENCE_POINTS = {
     "RED_LIGHT":    3,
     "DRUNK_DRIVING":5,
     "NO_INSURANCE": 0,   # no points for insurance offence
-    "EXPIRED_PUC":  0
+    "EXPIRED_PUC":  0,
+    "OF01":         2,
+    "OF02":         3,
+    "OF03":         3,
+    "OF04":         0,
+    "OF05":         5,
+    "OF06":         0,
+    "OF07":         3,
+    "OF08":         1,
+    "OF09":         3,
+    "OF10":         2,
+    "OF11":         0,
+    "OF12":         0
 }
 
 # Base fine amounts (BR-11)
@@ -33,7 +45,21 @@ OFFENCE_AMOUNTS = {
     "NO_INSURANCE":     2000,   # first offence
     "NO_INSURANCE_RPT": 4000,   # repeat offence (fixed amount, not doubled)
     "DRUNK_DRIVING":    10000,
-    "EXPIRED_PUC":      1000
+    "EXPIRED_PUC":      500,
+    "OF01":             1000,
+    "OF02_LMV":         1000,
+    "OF02_OTHER":       2000,
+    "OF03":             1000,
+    "OF04":             2000,
+    "OF04_RPT":         4000,
+    "OF05":             10000,
+    "OF06":             500,
+    "OF07":             1500,
+    "OF08":             500,
+    "OF09":             1500,
+    "OF10":             2000,
+    "OF11":             5000,
+    "OF12":             500
 }
 
 # Maximum fine cap for doubling rule (BR-11)
@@ -48,7 +74,7 @@ SECOND_SUSPENSION_YEARS     = 5     # second suspension within 5 years → revok
 
 # ── BR-11: Calculate challan amount ───────────────────────────────────────────
 
-def get_challan_amount(offence_code, vehicle_class, prior_challans):
+def get_challan_amount(offence_code, vehicle_class, prior_challans, offence_date=None):
     """
     Returns the correct fine amount for an offence.
 
@@ -61,49 +87,65 @@ def get_challan_amount(offence_code, vehicle_class, prior_challans):
     """
 
     # Check if this is a repeat offence within 12 months
-    is_repeat = _is_repeat_offence(offence_code, prior_challans)
+    is_repeat = _is_repeat_offence(offence_code, prior_challans, offence_date)
 
     # Special case: NO_INSURANCE has its own fixed repeat amount
-    if offence_code == "NO_INSURANCE":
+    if offence_code in ("NO_INSURANCE", "OF04"):
         if is_repeat:
-            return OFFENCE_AMOUNTS["NO_INSURANCE_RPT"]
-        return OFFENCE_AMOUNTS["NO_INSURANCE"]
+            return OFFENCE_AMOUNTS.get("OF04_RPT", OFFENCE_AMOUNTS["NO_INSURANCE_RPT"])
+        return OFFENCE_AMOUNTS.get(offence_code, OFFENCE_AMOUNTS["NO_INSURANCE"])
 
     # Special case: SPEEDING depends on vehicle class
-    if offence_code == "SPEEDING":
-        lmv_classes = ["LMV_PRIVATE", "LMV_TRANSPORT"]
+    if offence_code in ("SPEEDING", "OF02"):
+        lmv_classes = ["LMV_PRIVATE", "LMV_TRANSPORT", "2W", "EV"]
         if vehicle_class in lmv_classes:
-            base = OFFENCE_AMOUNTS["SPEEDING_LMV"]
+            base = OFFENCE_AMOUNTS.get("OF02_LMV", OFFENCE_AMOUNTS["SPEEDING_LMV"])
         else:
-            base = OFFENCE_AMOUNTS["SPEEDING_OTHER"]
+            base = OFFENCE_AMOUNTS.get("OF02_OTHER", OFFENCE_AMOUNTS["SPEEDING_OTHER"])
     else:
         base = OFFENCE_AMOUNTS.get(offence_code, 1000)
 
     # Repeat offence rule: double the amount, capped at Rs 10,000
     if is_repeat:
+        # Check if previous repeat was already doubled
+        matching_priors = [
+            c for c in prior_challans
+            if c.offence_code == offence_code and c.status not in ("DISMISSED", "WAIVED", "REJECTED")
+        ]
+        if matching_priors:
+            last_amount = matching_priors[-1].original_amount
+            doubled = last_amount * 2
+            return min(doubled, REPEAT_OFFENCE_CAP)
         doubled = base * 2
         return min(doubled, REPEAT_OFFENCE_CAP)
 
     return base
 
 
-def _is_repeat_offence(offence_code, prior_challans):
+def _is_repeat_offence(offence_code, prior_challans, offence_date=None):
     """
     Returns True if the same offence was committed within the last 12 months.
     Dismissed challans do NOT count as prior offences.
     prior_challans: list of Challan objects
     """
     from datetime import date
-    today = date.today()
-    one_year_ago = today - timedelta(days=365)
+    if offence_date:
+        today = date.fromisoformat(offence_date[:10]) if isinstance(offence_date, str) else offence_date
+        try:
+            one_year_ago = today.replace(year=today.year - 1)
+        except ValueError:
+            one_year_ago = today - timedelta(days=365)
+    else:
+        today = date.today()
+        one_year_ago = today - timedelta(days=365)
 
     for challan in prior_challans:
         if challan.offence_code != offence_code:
             continue
-        if challan.status == "DISMISSED":
+        if challan.status in ("DISMISSED", "WAIVED", "REJECTED"):
             continue   # dismissed challans don't count
-        challan_date = date.fromisoformat(challan.offence_date)
-        if challan_date >= one_year_ago:
+        challan_date = date.fromisoformat(challan.offence_date[:10])
+        if challan_date >= one_year_ago and challan_date <= today:
             return True
 
     return False
@@ -294,13 +336,16 @@ def check_and_apply_suspension(owner, current_date):
     Returns: a string describing what happened ("SUSPENDED", "REVOKED", or "OK")
     """
     current  = date.fromisoformat(current_date)
-    cutoff   = current - timedelta(days=ROLLING_WINDOW_DAYS)
+    if current.month == 2 and current.day == 29:
+        cutoff = current.replace(year=current.year - 2, day=28)
+    else:
+        cutoff = current.replace(year=current.year - 2)
 
-    # Sum only the points within the rolling 24-month window
+    # Sum only the points within the rolling 24-month window (strictly after X minus 24 calendar months)
     recent_points = sum(
         entry["points"]
         for entry in owner.licence_points
-        if date.fromisoformat(entry["date"]) >= cutoff
+        if date.fromisoformat(entry["date"][:10]) > cutoff
     )
 
     if recent_points < SUSPENSION_POINTS_THRESHOLD:
@@ -310,12 +355,15 @@ def check_and_apply_suspension(owner, current_date):
     if _is_second_suspension(owner, current_date):
         owner.licence_status         = "REVOKED"
         owner.licence_suspended_until = None
+        owner.status_since           = current_date
         return "REVOKED"
 
     # First suspension — suspend for 6 months
     suspension_end = current + timedelta(days=SUSPENSION_DURATION_DAYS)
     owner.licence_status          = "SUSPENDED"
     owner.licence_suspended_until = str(suspension_end)
+    owner.suspension_count        = getattr(owner, "suspension_count", 0) + 1
+    owner.status_since            = current_date
 
     # Record this suspension event on the owner
     if not hasattr(owner, "suspension_history"):

@@ -1,0 +1,13 @@
+offence_code,description,amount_lmv,amount_other,repeat_amount,points,court_referral,licence_disqualification_months
+OF01,Riding without helmet,1000.00,1000.00,,2,false,3
+OF02,Over-speeding,1000.00,2000.00,,3,false,0
+OF03,Red-light jumping,1000.00,1000.00,,3,false,0
+OF04,Driving without insurance,2000.00,2000.00,4000.00,0,false,0
+OF05,Drunk driving,10000.00,10000.00,,5,true,0
+OF06,Expired PUC certificate,500.00,500.00,,0,false,0
+OF07,Using mobile phone while driving,1500.00,1500.00,,3,false,0
+OF08,No seat belt,500.00,500.00,,1,false,0
+OF09,Wrong-side driving,1500.00,1500.00,,3,false,0
+OF10,Overloading goods vehicle,2000.00,2000.00,,2,false,0
+OF11,Driving without valid licence,5000.00,5000.00,,0,false,0
+OF12,Parking in no-parking zone,500.00,500.00,,0,false,0
